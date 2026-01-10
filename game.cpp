@@ -19,7 +19,7 @@ float player2Scale = targetHeight / 170;
 int player2Height = 170 * player2Scale;
 int player2Width = 102 * player2Scale;
 
-float speed = 8.0f;
+float speed = 5.0f;
 float gravity = 1.0f;
 float velocity1 = 0;
 float velocity2 = 0;
@@ -41,20 +41,35 @@ bool player2isOnGround = true;
 bool player1isFacingRight = true;
 bool player2isFacingRight = false;
 
+bool playerCollision(int x1, int x2, int y1, int y2, int h1, int h2, int w1, int w2)
+{
+    return (x1 < x2 + w2 &&
+            x1 + w1 > x2 &&
+            y1 < y2 + h2 &&
+            y1 + h1 > y2);
+}
+
 void movement(Sprite &player1Sprite, Sprite &player2Sprite)
 {
+
     // player 1
     if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
     {
         player1isFacingRight = false;
-        player1X -= speed;
+        float nextX = player1X - speed;
+        if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+            player1X = nextX;
     }
 
     if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
     {
         player1isFacingRight = true;
-        player1X += speed;
+        float nextX = player1X + speed;
+        if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+
+            player1X = nextX;
     }
+
     if (Keyboard::isKeyPressed(Keyboard::W) && player1isOnGround)
     {
         player1isOnGround = false;
@@ -65,13 +80,19 @@ void movement(Sprite &player1Sprite, Sprite &player2Sprite)
     if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
     {
         player2isFacingRight = false;
-        player2X -= speed;
+        float nextX = player2X - speed;
+        if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+            player2X = nextX;
     }
+
     if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
     {
         player2isFacingRight = true;
-        player2X += speed;
+        float nextX = player2X + speed;
+        if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+            player2X = nextX;
     }
+
     if (Keyboard::isKeyPressed(Keyboard::Up) && player2isOnGround)
     {
         player2isOnGround = false;
