@@ -10,16 +10,14 @@ int screenY = 720;
 float targetHeight = 250;
 
 // player 1
-float player1HeightScale = targetHeight / 302;
-float player1WidthScale = player1HeightScale;
-int player1Height = 302 * player1HeightScale;
-int player1Width = 132 * player1WidthScale;
+float player1Scale = targetHeight / 302;
+int player1Height = 302 * player1Scale;
+int player1Width = 132 * player1Scale;
 
 // player 2
-float player2HeightScale = targetHeight / 170;
-float player2WidthScale = player2HeightScale;
-int player2Height = 170 * player2HeightScale;
-int player2Width = 102 * player2WidthScale;
+float player2Scale = targetHeight / 170;
+int player2Height = 170 * player2Scale;
+int player2Width = 102 * player2Scale;
 
 float speed = 5.0f;
 float gravity = 1.0f;
@@ -39,6 +37,70 @@ int player2Y = ground;
 
 bool player1isOnGround = true;
 bool player2isOnGround = true;
+
+bool player1isFacingRight = true;
+bool player2isFacingRight = false;
+
+void movement(Sprite &player1Sprite, Sprite &player2Sprite)
+{
+    // player 1
+    if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
+    {
+        player1isFacingRight = false;
+        player1X -= speed;
+    }
+
+    if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
+    {
+        player1isFacingRight = true;
+        player1X += speed;
+    }
+    if (Keyboard::isKeyPressed(Keyboard::W) && player1isOnGround)
+    {
+        player1isOnGround = false;
+        velocity1 = jumpstrength;
+    }
+
+    // player 2
+    if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
+    {
+        player2isFacingRight = false;
+        player2X -= speed;
+    }
+    if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
+    {
+        player2isFacingRight = true;
+        player2X += speed;
+    }
+    if (Keyboard::isKeyPressed(Keyboard::Up) && player2isOnGround)
+    {
+        player2isOnGround = false;
+        velocity2 = jumpstrength;
+    }
+
+    // updating position
+    if (player1isFacingRight)
+    {
+        player1Sprite.setScale(player1Scale, player1Scale);
+        player1Sprite.setPosition(player1X, player1Y);
+    }
+    else
+    {
+        player1Sprite.setScale(-player1Scale, player1Scale);
+        player1Sprite.setPosition(player1X + player1Width, player1Y);
+    }
+
+    if (player2isFacingRight)
+    {
+        player2Sprite.setScale(-player2Scale, player2Scale);
+        player2Sprite.setPosition(player2X + player2Width, player2Y);
+    }
+    else
+    {
+        player2Sprite.setScale(player2Scale, player2Scale);
+        player2Sprite.setPosition(player2X, player2Y);
+    }
+}
 
 void playerGravity()
 {
@@ -61,7 +123,7 @@ void playerGravity()
     else
         velocity2 = 0;
 
-    //calculating next Y position after jump
+    // calculating next Y position after jump
     offsetY1 = player1Y;
     offsetY1 += velocity1;
 
@@ -113,7 +175,7 @@ int main()
     Texture player1Texture;
     player1Texture.loadFromFile("Assets/Sprites/player 1.png");
     player1Sprite.setTexture(player1Texture);
-    player1Sprite.setScale(player1WidthScale, player1HeightScale);
+    player1Sprite.setScale(player1Scale, player1Scale);
     player1Sprite.setPosition(player1X, player1Y);
 
     // player2 sprite
@@ -121,7 +183,7 @@ int main()
     Texture player2Texture;
     player2Texture.loadFromFile("Assets/Sprites/player 2.png");
     player2Sprite.setTexture(player2Texture);
-    player2Sprite.setScale(player2WidthScale, player2HeightScale);
+    player2Sprite.setScale(player2Scale, player2Scale);
     player2Sprite.setPosition(player2X, player2Y);
 
     // to check co-ordinates of a sprite
@@ -143,42 +205,14 @@ int main()
         if (Keyboard::isKeyPressed(Keyboard::Escape))
             window.close();
 
-        // MOVEMENT
-
-        // player 1
-        if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
-            player1X -= speed;
-
-        if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
-            player1X += speed;
-
-        if (Keyboard::isKeyPressed(Keyboard::W) && player1isOnGround)
-        {
-            player1isOnGround = false;
-            velocity1 = jumpstrength;
-        }
-
-        // player 2
-        if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
-            player2X -= speed;
-
-        if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
-            player2X += speed;
-
-        if (Keyboard::isKeyPressed(Keyboard::Up) && player2isOnGround)
-        {
-            player2isOnGround = false;
-            velocity2 = jumpstrength;
-        }
-
+        //function calling
+        movement(player1Sprite, player2Sprite);
         playerGravity();
-        // updating position after a key is pressed for movement and gravity is applied
-        player1Sprite.setPosition(player1X, player1Y);
-        player2Sprite.setPosition(player2X, player2Y);
 
         window.draw(bgSprite);
         window.draw(player1Sprite);
         window.draw(player2Sprite);
         window.display();
     }
+    
 }
