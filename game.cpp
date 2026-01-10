@@ -7,7 +7,7 @@ int screenX = 1280;
 int screenY = 720;
 
 // scaling sprites so that both sprites have the same size
-float targetHeight = 250;
+float targetHeight = 300;
 
 // player 1
 float player1Scale = targetHeight / 302;
@@ -19,7 +19,7 @@ float player2Scale = targetHeight / 170;
 int player2Height = 170 * player2Scale;
 int player2Width = 102 * player2Scale;
 
-float speed = 5.0f;
+float speed = 8.0f;
 float gravity = 1.0f;
 float velocity1 = 0;
 float velocity2 = 0;
@@ -29,7 +29,7 @@ float jumpstrength = -20.0f;
 float terminalVelocity = 20.0f;
 
 // ground variable stores Y value of ground where player should be standing
-int ground = 460;
+int ground = 410;
 int player1X = 50;
 int player1Y = ground;
 int player2X = 1100;
@@ -205,7 +205,7 @@ int main()
         if (Keyboard::isKeyPressed(Keyboard::Escape))
             window.close();
 
-        //function calling
+        // function calling
         movement(player1Sprite, player2Sprite);
         playerGravity();
 
@@ -214,5 +214,4 @@ int main()
         window.draw(player2Sprite);
         window.display();
     }
-    
 }
