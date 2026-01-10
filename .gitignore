@@ -1,6 +1,17 @@
 # Prerequisites
 *.d
 
+# IDE / Editor
+.vscode/
+.idea/
+
+# Build folders
+build/
+bin/
+build.bat
+
+
+
 # Compiled Object files
 *.slo
 *.lo

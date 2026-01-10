@@ -1,0 +1,177 @@
+#include <iostream>
+#include <SFML/Graphics.hpp>
+using namespace std;
+using namespace sf;
+
+int screenX = 1280;
+int screenY = 720;
+
+float player1Scale = 0.8f;
+float player2Scale = 1.3f;
+
+int player1Height = 302 * player1Scale;
+int player1Width = 132 * player1Scale;
+int player2Height = 170 * player2Scale;
+int player2Width = 102 * player2Scale;
+
+float speed = 5.0f;
+float gravity = 1.0f;
+float velocity1 = 0;
+float velocity2 = 0;
+float offsetY1 = 0;
+float offsetY2 = 0;
+float jumpstrength = -20.0f;
+float terminalVelocity = 20.0f;
+
+// ground variable stores Y value of ground where player should be standing
+int ground = 480;
+int player1X = 0;
+int player1Y = ground;
+int player2X = screenX - player2Width;
+int player2Y = ground;
+
+bool player1isOnGround = true;
+bool player2isOnGround = true;
+
+void playerGravity()
+{
+    // apply gravity to velocity if player is not on ground
+    if (!player1isOnGround)
+    {
+        velocity1 += gravity;
+        if (velocity1 > terminalVelocity)
+            velocity1 = terminalVelocity;
+    }
+    else
+        velocity1 = 0;
+
+    if (!player2isOnGround)
+    {
+        velocity2 += gravity;
+        if (velocity2 > terminalVelocity)
+            velocity2 = terminalVelocity;
+    }
+    else
+        velocity2 = 0;
+
+    offsetY1 = player1Y;
+    offsetY1 += velocity1;
+
+    offsetY2 = player2Y;
+    offsetY2 += velocity2;
+
+    if (offsetY1 + player1Height > 720)
+    {
+        player1isOnGround = true;
+        velocity1 = 0;
+        player1Y = ground;
+    }
+    else
+    {
+        player1Y = offsetY1;
+        player1isOnGround = false;
+    }
+
+    if (offsetY2 + player2Height > 700)
+    {
+        player2isOnGround = true;
+        velocity2 = 0;
+        player2Y = ground;
+    }
+    else
+    {
+        player2Y = offsetY2;
+        player2isOnGround = false;
+    }
+}
+
+int main()
+{
+    // creating window
+    RenderWindow window(VideoMode(screenX, screenY), "Game", Style::Default);
+    window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
+
+    // LOADING SPRITES
+
+    // background sprite
+    Sprite bgSprite;
+    Texture bgTexture;
+    bgTexture.loadFromFile("Assets/Sprites/bg.jpg");
+    bgSprite.setTexture(bgTexture);
+
+    // player1 sprite
+    Sprite player1Sprite;
+    Texture player1Texture;
+    player1Texture.loadFromFile("Assets/Sprites/player 1.png");
+    player1Sprite.setTexture(player1Texture);
+    player1Sprite.setScale(player1Scale, player1Scale);
+    player1Sprite.setPosition(player1X, player1Y);
+
+    Sprite player2Sprite;
+    Texture player2Texture;
+    player2Texture.loadFromFile("Assets/Sprites/player 2.png");
+    player2Sprite.setTexture(player2Texture);
+    player2Sprite.setScale(player2Scale, player2Scale);
+    player2Sprite.setPosition(player2X, player2Y);
+
+    
+
+    // to check co-ordinates of a sprite
+    // Vector2f position = player1Sprite.getPosition();
+    // cout << position.x << " " << position.y << "\n";
+
+    // main game loop
+    Event Ev;
+    while (window.isOpen())
+    {
+        window.clear();
+
+        while (window.pollEvent(Ev))
+        {
+            if (Ev.type == Event::Closed) // when the close window icon is pressed it closes window
+                window.close();
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Escape))
+            window.close();
+
+        // MOVEMENT
+
+        // player 1
+        if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
+            player1X -= speed;
+
+        if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
+            player1X += speed;
+
+        if (Keyboard::isKeyPressed(Keyboard::W) && player1isOnGround)
+        {
+            player1isOnGround = false;
+            velocity1 = jumpstrength;
+        }
+
+        // player 2
+        if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
+            player2X -= speed;
+
+        if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
+            player2X += speed;
+
+        if (Keyboard::isKeyPressed(Keyboard::Up) && player2isOnGround)
+        {
+            player2isOnGround = false;
+            velocity2 = jumpstrength;
+        }
+
+        playerGravity();
+        // updating position after a key is pressed for movement and gravity is applied
+        player1Sprite.setPosition(player1X, player1Y);
+        player2Sprite.setPosition(player2X, player2Y);
+
+        window.draw(bgSprite);
+        window.draw(player1Sprite);
+        window.draw(player2Sprite);
+        window.display();
+    }
+}
