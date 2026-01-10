@@ -6,13 +6,20 @@ using namespace sf;
 int screenX = 1280;
 int screenY = 720;
 
-float player1Scale = 0.8f;
-float player2Scale = 1.3f;
+// scaling sprites so that both sprites have the same size
+float targetHeight = 250;
 
-int player1Height = 302 * player1Scale;
-int player1Width = 132 * player1Scale;
-int player2Height = 170 * player2Scale;
-int player2Width = 102 * player2Scale;
+// player 1
+float player1HeightScale = targetHeight / 302;
+float player1WidthScale = player1HeightScale;
+int player1Height = 302 * player1HeightScale;
+int player1Width = 132 * player1WidthScale;
+
+// player 2
+float player2HeightScale = targetHeight / 170;
+float player2WidthScale = player2HeightScale;
+int player2Height = 170 * player2HeightScale;
+int player2Width = 102 * player2WidthScale;
 
 float speed = 5.0f;
 float gravity = 1.0f;
@@ -24,10 +31,10 @@ float jumpstrength = -20.0f;
 float terminalVelocity = 20.0f;
 
 // ground variable stores Y value of ground where player should be standing
-int ground = 480;
-int player1X = 0;
+int ground = 460;
+int player1X = 50;
 int player1Y = ground;
-int player2X = screenX - player2Width;
+int player2X = 1100;
 int player2Y = ground;
 
 bool player1isOnGround = true;
@@ -54,13 +61,14 @@ void playerGravity()
     else
         velocity2 = 0;
 
+    //calculating next Y position after jump
     offsetY1 = player1Y;
     offsetY1 += velocity1;
 
     offsetY2 = player2Y;
     offsetY2 += velocity2;
 
-    if (offsetY1 + player1Height > 720)
+    if (offsetY1 > ground)
     {
         player1isOnGround = true;
         velocity1 = 0;
@@ -72,7 +80,7 @@ void playerGravity()
         player1isOnGround = false;
     }
 
-    if (offsetY2 + player2Height > 700)
+    if (offsetY2 > ground)
     {
         player2isOnGround = true;
         velocity2 = 0;
@@ -105,17 +113,16 @@ int main()
     Texture player1Texture;
     player1Texture.loadFromFile("Assets/Sprites/player 1.png");
     player1Sprite.setTexture(player1Texture);
-    player1Sprite.setScale(player1Scale, player1Scale);
+    player1Sprite.setScale(player1WidthScale, player1HeightScale);
     player1Sprite.setPosition(player1X, player1Y);
 
+    // player2 sprite
     Sprite player2Sprite;
     Texture player2Texture;
     player2Texture.loadFromFile("Assets/Sprites/player 2.png");
     player2Sprite.setTexture(player2Texture);
-    player2Sprite.setScale(player2Scale, player2Scale);
+    player2Sprite.setScale(player2WidthScale, player2HeightScale);
     player2Sprite.setPosition(player2X, player2Y);
-
-    
 
     // to check co-ordinates of a sprite
     // Vector2f position = player1Sprite.getPosition();
