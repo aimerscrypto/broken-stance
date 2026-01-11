@@ -50,9 +50,11 @@ int p1Counter = 0;
 int p2Frame = 0;
 int p2Counter = 0;
 
-void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Texture &p1Jump, Texture &p2Idle, Texture &p2Jump)
+void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Texture &p1Jump, Texture &p1Run,
+               Texture &p2Idle, Texture &p2Jump, Texture &p2Run)
 {
     int animSpeed = 5;
+
     // player 1 animaiton
     if (player1isJumping)
     {
@@ -66,6 +68,22 @@ void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Te
             p1Frame++;
             if (p1Frame >= totalFrames)
                 p1Frame = 0;
+            player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
+        }
+    }
+    else if (!player1isIdle)
+    {
+        player1Sprite.setTexture(p1Run);
+        int totalFrames = 8;
+
+        p1Counter++;
+        if (p1Counter >= animSpeed)
+        {
+            p1Counter = 0;
+            p1Frame++;
+            if (p1Frame >= totalFrames)
+                p1Frame = 0;
+
             player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
         }
     }
@@ -90,6 +108,21 @@ void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Te
     {
         player2Sprite.setTexture(p2Jump);
         int totalFrames = 12;
+
+        p2Counter++;
+        if (p2Counter >= animSpeed)
+        {
+            p2Counter = 0;
+            p2Frame++;
+            if (p2Frame >= totalFrames)
+                p2Frame = 0;
+            player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+        }
+    }
+    else if (!player2isIdle)
+    {
+        player2Sprite.setTexture(p2Run);
+        int totalFrames = 8;
 
         p2Counter++;
         if (p2Counter >= animSpeed)
@@ -128,10 +161,12 @@ bool playerCollision(int x1, int x2, int y1, int y2, int h1, int h2, int w1, int
 
 void movement(Sprite &player1Sprite, Sprite &player2Sprite)
 {
-
+    player1isIdle = true;
+    player2isIdle = true;
     // player 1
     if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
     {
+        player1isIdle = false;
         player1isFacingRight = false;
         float nextX = player1X - speed;
         if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
@@ -140,6 +175,7 @@ void movement(Sprite &player1Sprite, Sprite &player2Sprite)
 
     if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
     {
+        player1isIdle = false;
         player1isFacingRight = true;
         float nextX = player1X + speed;
         if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
@@ -157,6 +193,7 @@ void movement(Sprite &player1Sprite, Sprite &player2Sprite)
     // player 2
     if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
     {
+        player2isIdle = false;
         player2isFacingRight = false;
         float nextX = player2X - speed;
         if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
@@ -165,6 +202,7 @@ void movement(Sprite &player1Sprite, Sprite &player2Sprite)
 
     if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
     {
+        player2isIdle = false;
         player2isFacingRight = true;
         float nextX = player2X + speed;
         if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
@@ -267,6 +305,7 @@ int main()
 {
     // creating window
     RenderWindow window(VideoMode(screenX, screenY), "Broken Stance", Style::Default);
+    window.setPosition(Vector2i(150, 50));
     window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
 
@@ -277,14 +316,16 @@ int main()
     bgTexture.loadFromFile("Assets/Sprites/bg.png");
 
     // player
-    Texture p1IdleTex, p1JumpTex;
+    Texture p1IdleTex, p1JumpTex, p1RunTex;
     p1IdleTex.loadFromFile("Assets/Sprites/player1/idle.png");
     p1JumpTex.loadFromFile("Assets/Sprites/player1/Jump.png");
+    p1RunTex.loadFromFile("Assets/Sprites/player1/Run.png");
 
     // player 2
-    Texture p2IdleTex, p2JumpTex;
+    Texture p2IdleTex, p2JumpTex, p2RunTex;
     p2IdleTex.loadFromFile("Assets/Sprites/player2/idle.png");
     p2JumpTex.loadFromFile("Assets/Sprites/player2/Jump.png");
+    p2RunTex.loadFromFile("Assets/Sprites/player2/Run.png");
 
     // Creating Sprites
 
@@ -322,7 +363,7 @@ int main()
         // function calling
         movement(player1Sprite, player2Sprite);
         playerGravity();
-        animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p2IdleTex, p2JumpTex);
+        animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p2IdleTex, p2JumpTex, p2RunTex);
 
         // drawing on screen
         window.draw(bgSprite);
