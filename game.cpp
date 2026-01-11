@@ -36,6 +36,8 @@ bool player1isJumping = false;
 bool player2isJumping = false;
 bool player1isIdle = true;
 bool player2isIdle = true;
+bool player1isAttacking = false;
+bool player2isAttacking = false;
 
 // ground variable stores Y value of ground where player should be standing
 int ground = 316;
@@ -50,13 +52,58 @@ int p1Counter = 0;
 int p2Frame = 0;
 int p2Counter = 0;
 
-void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Texture &p1Jump, Texture &p1Run,
-               Texture &p2Idle, Texture &p2Jump, Texture &p2Run)
+void attack()
+{
+    // distance between player
+    float distance = player2X - (player1X + player1Width);
+
+    // player 1
+    if (Keyboard::isKeyPressed(Keyboard::Q) && !player1isAttacking) // attack 1
+    {
+        player1isAttacking = true;
+        if (distance < 25)
+        {
+            // hit player2 and descrease its health
+        }
+    }
+
+    // player 2
+    if (Keyboard::isKeyPressed(Keyboard::K) && !player2isAttacking) // attack 1
+    {
+        player2isAttacking = true;
+        if (distance < 25)
+        {
+            // hit player1 and descrease its health
+        }
+    }
+}
+
+void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Texture &p1Jump, Texture &p1Run, Texture &p1Attack1,
+               Texture &p2Idle, Texture &p2Jump, Texture &p2Run, Texture &p2Attack1)
 {
     int animSpeed = 5;
 
     // player 1 animaiton
-    if (player1isJumping)
+    if (player1isAttacking)
+    {
+        player1Sprite.setTexture(p1Attack1);
+        int totalFrames = 4;
+
+        p1Counter++;
+
+        if (p1Counter >= animSpeed)
+        {
+            p1Counter = 0;
+            p1Frame++;
+            if (p1Frame >= totalFrames)
+            {
+                p1Frame = 0;
+                player1isAttacking = false;
+            }
+        }
+        player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
+    }
+    else if (player1isJumping)
     {
         player1Sprite.setTexture(p1Jump);
         int totalFrames = 10;
@@ -104,7 +151,25 @@ void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Te
     }
 
     // player 2 animation
-    if (player2isJumping)
+    if (player2isAttacking)
+    {
+        player2Sprite.setTexture(p2Attack1);
+        int totalFrames = 6;
+
+        p2Counter++;
+        if (p2Counter >= animSpeed)
+        {
+            p2Counter = 0;
+            p2Frame++;
+            if (p2Frame >= totalFrames)
+            {
+                p2Frame = 0;
+                player2isAttacking = false;
+            }
+        }
+        player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+    }
+    else if (player2isJumping)
     {
         player2Sprite.setTexture(p2Jump);
         int totalFrames = 12;
@@ -316,16 +381,18 @@ int main()
     bgTexture.loadFromFile("Assets/Sprites/bg.png");
 
     // player
-    Texture p1IdleTex, p1JumpTex, p1RunTex;
+    Texture p1IdleTex, p1JumpTex, p1RunTex, p1Attack1;
     p1IdleTex.loadFromFile("Assets/Sprites/player1/idle.png");
     p1JumpTex.loadFromFile("Assets/Sprites/player1/Jump.png");
     p1RunTex.loadFromFile("Assets/Sprites/player1/Run.png");
+    p1Attack1.loadFromFile("Assets/Sprites/player1/Attack_1.png");
 
     // player 2
-    Texture p2IdleTex, p2JumpTex, p2RunTex;
+    Texture p2IdleTex, p2JumpTex, p2RunTex, p2Attack1;
     p2IdleTex.loadFromFile("Assets/Sprites/player2/idle.png");
     p2JumpTex.loadFromFile("Assets/Sprites/player2/Jump.png");
     p2RunTex.loadFromFile("Assets/Sprites/player2/Run.png");
+    p2Attack1.loadFromFile("Assets/Sprites/player2/Attack_1.png");
 
     // Creating Sprites
 
@@ -361,9 +428,10 @@ int main()
             window.close();
 
         // function calling
+        attack();
         movement(player1Sprite, player2Sprite);
         playerGravity();
-        animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p2IdleTex, p2JumpTex, p2RunTex);
+        animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p1Attack1, p2IdleTex, p2JumpTex, p2RunTex, p2Attack1);
 
         // drawing on screen
         window.draw(bgSprite);
