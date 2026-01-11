@@ -6,19 +6,19 @@ using namespace sf;
 int screenX = 1280;
 int screenY = 720;
 
-// scaling sprites so that both sprites have the same size
-float targetHeight = 300;
+// scaling sprites to increase the size
+float playerScale = 3;
+int textureSize = 128;
 
 // player 1
-float player1Scale = targetHeight / 302;
-int player1Height = 302 * player1Scale;
-int player1Width = 132 * player1Scale;
+int player1Height = 82 * playerScale;
+int player1Width = 32 * playerScale;
 
 // player 2
-float player2Scale = targetHeight / 170;
-int player2Height = 170 * player2Scale;
-int player2Width = 102 * player2Scale;
+int player2Height = 82 * playerScale;
+int player2Width = 32 * playerScale;
 
+// player state variables
 float speed = 5.0f;
 float gravity = 1.0f;
 float velocity1 = 0;
@@ -28,18 +28,17 @@ float offsetY2 = 0;
 float jumpstrength = -20.0f;
 float terminalVelocity = 20.0f;
 
-// ground variable stores Y value of ground where player should be standing
-int ground = 410;
-int player1X = 50;
-int player1Y = ground;
-int player2X = 1100;
-int player2Y = ground;
-
 bool player1isOnGround = true;
 bool player2isOnGround = true;
-
 bool player1isFacingRight = true;
 bool player2isFacingRight = false;
+
+// ground variable stores Y value of ground where player should be standing
+int ground = 316;
+int player1X = 50;
+int player1Y = ground;
+int player2X = 1000;
+int player2Y = ground;
 
 bool playerCollision(int x1, int x2, int y1, int y2, int h1, int h2, int w1, int w2)
 {
@@ -100,26 +99,32 @@ void movement(Sprite &player1Sprite, Sprite &player2Sprite)
     }
 
     // updating position
+
+    int visualSize = textureSize * playerScale; // 128*3=384
+    // Calculating the "Empty Space" offsets
+    // X: (384 - 96) / 2 = 144 pixels of empty space on the left
+    int offsetX = (visualSize - player1Width) / 2;
+
     if (player1isFacingRight)
     {
-        player1Sprite.setScale(player1Scale, player1Scale);
-        player1Sprite.setPosition(player1X, player1Y);
+        player1Sprite.setScale(playerScale, playerScale);
+        player1Sprite.setPosition(player1X - offsetX, player1Y);
     }
     else
     {
-        player1Sprite.setScale(-player1Scale, player1Scale);
-        player1Sprite.setPosition(player1X + player1Width, player1Y);
+        player1Sprite.setScale(-playerScale, playerScale);
+        player1Sprite.setPosition(player1X + visualSize - offsetX, player1Y);
     }
 
     if (player2isFacingRight)
     {
-        player2Sprite.setScale(-player2Scale, player2Scale);
-        player2Sprite.setPosition(player2X + player2Width, player2Y);
+        player2Sprite.setScale(playerScale, playerScale);
+        player2Sprite.setPosition(player2X - offsetX, player2Y);
     }
     else
     {
-        player2Sprite.setScale(player2Scale, player2Scale);
-        player2Sprite.setPosition(player2X, player2Y);
+        player2Sprite.setScale(-playerScale, playerScale);
+        player2Sprite.setPosition(player2X + visualSize - offsetX, player2Y);
     }
 }
 
@@ -179,7 +184,7 @@ void playerGravity()
 int main()
 {
     // creating window
-    RenderWindow window(VideoMode(screenX, screenY), "Game", Style::Default);
+    RenderWindow window(VideoMode(screenX, screenY), "Broken Stance", Style::Default);
     window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
 
@@ -188,23 +193,22 @@ int main()
     // background sprite
     Sprite bgSprite;
     Texture bgTexture;
-    bgTexture.loadFromFile("Assets/Sprites/bg.jpg");
+    bgTexture.loadFromFile("Assets/Sprites/bg.png");
     bgSprite.setTexture(bgTexture);
 
-    // player1 sprite
-    Sprite player1Sprite;
+    // player1 idle sprite
+
     Texture player1Texture;
-    player1Texture.loadFromFile("Assets/Sprites/player 1.png");
-    player1Sprite.setTexture(player1Texture);
-    player1Sprite.setScale(player1Scale, player1Scale);
+    player1Texture.loadFromFile("Assets/Sprites/player1/idle.png");
+    Sprite player1Sprite(player1Texture, IntRect(0, 0, textureSize, textureSize));
+    player1Sprite.setScale(playerScale, playerScale);
     player1Sprite.setPosition(player1X, player1Y);
 
-    // player2 sprite
-    Sprite player2Sprite;
+    // player2 idle sprite
     Texture player2Texture;
-    player2Texture.loadFromFile("Assets/Sprites/player 2.png");
-    player2Sprite.setTexture(player2Texture);
-    player2Sprite.setScale(player2Scale, player2Scale);
+    player2Texture.loadFromFile("Assets/Sprites/player2/idle.png");
+    Sprite player2Sprite(player2Texture, IntRect(0, 0, textureSize, textureSize));
+    player2Sprite.setScale(-playerScale, playerScale);
     player2Sprite.setPosition(player2X, player2Y);
 
     // to check co-ordinates of a sprite
@@ -213,6 +217,13 @@ int main()
 
     // main game loop
     Event Ev;
+
+    // animation variables
+    int totalFrames = 6;
+    int currentFrame = 1;
+    int frameCounter = 0;    // counts how many times the loop ran
+    int animationSpeed = 10; // counts how many loops to wait to change frame of animation
+
     while (window.isOpen())
     {
         window.clear();
@@ -225,6 +236,21 @@ int main()
 
         if (Keyboard::isKeyPressed(Keyboard::Escape))
             window.close();
+
+        frameCounter++;
+        if (frameCounter >= animationSpeed)
+        {
+            frameCounter = 0; // reset counter
+
+            if (currentFrame >= totalFrames - 1)
+                currentFrame = 0;
+            else
+                currentFrame++;
+
+            // Cut the sprite sheet
+            player1Sprite.setTextureRect(IntRect(currentFrame * textureSize, 0, textureSize, textureSize));
+            player2Sprite.setTextureRect(IntRect(currentFrame * textureSize, 0, textureSize, textureSize));
+        }
 
         // function calling
         movement(player1Sprite, player2Sprite);
