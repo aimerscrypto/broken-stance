@@ -27,6 +27,8 @@ float offsetY1 = 0;
 float offsetY2 = 0;
 float jumpstrength = -20.0f;
 float terminalVelocity = 20.0f;
+int player1Health = 100;
+int player2Health = 100;
 
 bool player1isOnGround = true;
 bool player2isOnGround = true;
@@ -38,6 +40,7 @@ bool player1isIdle = true;
 bool player2isIdle = true;
 bool player1isAttacking = false;
 bool player2isAttacking = false;
+bool isGameOver = false;
 
 // ground variable stores Y value of ground where player should be standing
 int ground = 316;
@@ -52,18 +55,29 @@ int p1Counter = 0;
 int p2Frame = 0;
 int p2Counter = 0;
 
-void attack()
+void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, Text &player1Text, Text &player2Text)
 {
+
     // distance between player
-    float distance = player2X - (player1X + player1Width);
+    float distance = (player2X - (player1X + player1Width));
 
     // player 1
     if (Keyboard::isKeyPressed(Keyboard::Q) && !player1isAttacking) // attack 1
     {
         player1isAttacking = true;
-        if (distance < 25)
+        if (distance < 50)
         {
-            // hit player2 and descrease its health
+            if (player2Health > 0)
+            {
+                player2Health -= 10;
+                player2HealthBar.setSize({player2Health * 3.f, 50.f});
+                player2Text.setString("Player 2: " + to_string(player2Health) + "%");
+                if (player2X + 20 < screenX - player2Width)
+                    player2X += 20;
+
+                if (player2Health <= 0)
+                    isGameOver = true;
+            }
         }
     }
 
@@ -71,372 +85,462 @@ void attack()
     if (Keyboard::isKeyPressed(Keyboard::K) && !player2isAttacking) // attack 1
     {
         player2isAttacking = true;
-        if (distance < 25)
+        if (distance < 50)
         {
-            // hit player1 and descrease its health
-        }
-    }
-}
-
-void animation(Sprite &player1Sprite, Sprite &player2Sprite, Texture &p1Idle, Texture &p1Jump, Texture &p1Run, Texture &p1Attack1,
-               Texture &p2Idle, Texture &p2Jump, Texture &p2Run, Texture &p2Attack1)
-{
-    int animSpeed = 5;
-
-    // player 1 animaiton
-    if (player1isAttacking)
-    {
-        player1Sprite.setTexture(p1Attack1);
-        int totalFrames = 4;
-
-        p1Counter++;
-
-        if (p1Counter >= animSpeed)
-        {
-            p1Counter = 0;
-            p1Frame++;
-            if (p1Frame >= totalFrames)
+            if (player1Health > 0)
             {
-                p1Frame = 0;
-                player1isAttacking = false;
+                player1Health -= 10;
+                player1HealthBar.setSize({player1Health * 3.f, 50.f});
+                player1Text.setString("Player 1: " + to_string(player1Health) + "%");
+                if (player1X - 20 > 0)
+                    player1X -= 20;
+
+                if (player1Health <= 0)
+                    isGameOver = true;
             }
         }
-        player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
     }
-    else if (player1isJumping)
+}
+    void animation(Sprite & player1Sprite, Sprite & player2Sprite, Texture & p1Idle, Texture & p1Jump, Texture & p1Run, Texture & p1Attack1,
+                   Texture & p2Idle, Texture & p2Jump, Texture & p2Run, Texture & p2Attack1)
     {
-        player1Sprite.setTexture(p1Jump);
-        int totalFrames = 10;
+        int animSpeed = 5;
 
-        p1Counter++;
-        if (p1Counter >= animSpeed)
+        // player 1 animaiton
+        if (player1isAttacking)
         {
-            p1Counter = 0;
-            p1Frame++;
-            if (p1Frame >= totalFrames)
-                p1Frame = 0;
-            player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
-        }
-    }
-    else if (!player1isIdle)
-    {
-        player1Sprite.setTexture(p1Run);
-        int totalFrames = 8;
+            player1Sprite.setTexture(p1Attack1);
+            int totalFrames = 4;
 
-        p1Counter++;
-        if (p1Counter >= animSpeed)
-        {
-            p1Counter = 0;
-            p1Frame++;
-            if (p1Frame >= totalFrames)
-                p1Frame = 0;
+            p1Counter++;
 
-            player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
-        }
-    }
-    else
-    {
-        player1Sprite.setTexture(p1Idle);
-        int totalFrames = 6;
-
-        p1Counter++;
-        if (p1Counter >= animSpeed)
-        {
-            p1Counter = 0;
-            p1Frame++;
-            if (p1Frame >= totalFrames)
-                p1Frame = 0;
-            player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
-        }
-    }
-
-    // player 2 animation
-    if (player2isAttacking)
-    {
-        player2Sprite.setTexture(p2Attack1);
-        int totalFrames = 6;
-
-        p2Counter++;
-        if (p2Counter >= animSpeed)
-        {
-            p2Counter = 0;
-            p2Frame++;
-            if (p2Frame >= totalFrames)
+            if (p1Counter >= animSpeed)
             {
-                p2Frame = 0;
-                player2isAttacking = false;
+                p1Counter = 0;
+                p1Frame++;
+                if (p1Frame >= totalFrames)
+                {
+                    p1Frame = 0;
+                    player1isAttacking = false;
+                }
+            }
+            player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
+        }
+        else if (player1isJumping)
+        {
+            player1Sprite.setTexture(p1Jump);
+            int totalFrames = 10;
+
+            p1Counter++;
+            if (p1Counter >= animSpeed)
+            {
+                p1Counter = 0;
+                p1Frame++;
+                if (p1Frame >= totalFrames)
+                    p1Frame = 0;
+                player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
             }
         }
-        player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
-    }
-    else if (player2isJumping)
-    {
-        player2Sprite.setTexture(p2Jump);
-        int totalFrames = 12;
-
-        p2Counter++;
-        if (p2Counter >= animSpeed)
+        else if (!player1isIdle)
         {
-            p2Counter = 0;
-            p2Frame++;
-            if (p2Frame >= totalFrames)
-                p2Frame = 0;
+            player1Sprite.setTexture(p1Run);
+            int totalFrames = 8;
+
+            p1Counter++;
+            if (p1Counter >= animSpeed)
+            {
+                p1Counter = 0;
+                p1Frame++;
+                if (p1Frame >= totalFrames)
+                    p1Frame = 0;
+
+                player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
+            }
+        }
+        else
+        {
+            player1Sprite.setTexture(p1Idle);
+            int totalFrames = 6;
+
+            p1Counter++;
+            if (p1Counter >= animSpeed)
+            {
+                p1Counter = 0;
+                p1Frame++;
+                if (p1Frame >= totalFrames)
+                    p1Frame = 0;
+                player1Sprite.setTextureRect(IntRect(p1Frame * 128, 0, 128, 128));
+            }
+        }
+
+        // player 2 animation
+        if (player2isAttacking)
+        {
+            player2Sprite.setTexture(p2Attack1);
+            int totalFrames = 6;
+
+            p2Counter++;
+            if (p2Counter >= animSpeed)
+            {
+                p2Counter = 0;
+                p2Frame++;
+                if (p2Frame >= totalFrames)
+                {
+                    p2Frame = 0;
+                    player2isAttacking = false;
+                }
+            }
             player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
         }
-    }
-    else if (!player2isIdle)
-    {
-        player2Sprite.setTexture(p2Run);
-        int totalFrames = 8;
-
-        p2Counter++;
-        if (p2Counter >= animSpeed)
+        else if (player2isJumping)
         {
-            p2Counter = 0;
-            p2Frame++;
-            if (p2Frame >= totalFrames)
-                p2Frame = 0;
-            player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+            player2Sprite.setTexture(p2Jump);
+            int totalFrames = 12;
+
+            p2Counter++;
+            if (p2Counter >= animSpeed)
+            {
+                p2Counter = 0;
+                p2Frame++;
+                if (p2Frame >= totalFrames)
+                    p2Frame = 0;
+                player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+            }
+        }
+        else if (!player2isIdle)
+        {
+            player2Sprite.setTexture(p2Run);
+            int totalFrames = 8;
+
+            p2Counter++;
+            if (p2Counter >= animSpeed)
+            {
+                p2Counter = 0;
+                p2Frame++;
+                if (p2Frame >= totalFrames)
+                    p2Frame = 0;
+                player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+            }
+        }
+        else
+        {
+            player2Sprite.setTexture(p2Idle);
+            int totalFrames = 6;
+
+            p2Counter++;
+            if (p2Counter >= animSpeed)
+            {
+                p2Counter = 0;
+                p2Frame++;
+                if (p2Frame >= totalFrames)
+                    p2Frame = 0;
+                player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+            }
         }
     }
-    else
-    {
-        player2Sprite.setTexture(p2Idle);
-        int totalFrames = 6;
 
-        p2Counter++;
-        if (p2Counter >= animSpeed)
+    bool playerCollision(int x1, int x2, int y1, int y2, int h1, int h2, int w1, int w2)
+    {
+        return (x1 < x2 + w2 &&
+                x1 + w1 > x2 &&
+                y1 < y2 + h2 &&
+                y1 + h1 > y2);
+    }
+
+    void movement(Sprite & player1Sprite, Sprite & player2Sprite)
+    {
+        player1isIdle = true;
+        player2isIdle = true;
+        // player 1
+        if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
         {
-            p2Counter = 0;
-            p2Frame++;
-            if (p2Frame >= totalFrames)
-                p2Frame = 0;
-            player2Sprite.setTextureRect(IntRect(p2Frame * 128, 0, 128, 128));
+            player1isIdle = false;
+            player1isFacingRight = false;
+            float nextX = player1X - speed;
+            if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+                player1X = nextX;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
+        {
+            player1isIdle = false;
+            player1isFacingRight = true;
+            float nextX = player1X + speed;
+            if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+
+                player1X = nextX;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::W) && player1isOnGround)
+        {
+            player1isJumping = true;
+            player1isOnGround = false;
+            velocity1 = jumpstrength;
+        }
+
+        // player 2
+        if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
+        {
+            player2isIdle = false;
+            player2isFacingRight = false;
+            float nextX = player2X - speed;
+            if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+                player2X = nextX;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
+        {
+            player2isIdle = false;
+            player2isFacingRight = true;
+            float nextX = player2X + speed;
+            if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+                player2X = nextX;
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Up) && player2isOnGround)
+        {
+            player2isJumping = true;
+            player2isOnGround = false;
+            velocity2 = jumpstrength;
+        }
+
+        // updating position
+
+        int visualSize = textureSize * playerScale; // 128*3=384
+        // Calculating the "Empty Space" offsets
+        // X: (384 - 96) / 2 = 144 pixels of empty space on the left
+        int offsetX = (visualSize - player1Width) / 2;
+
+        if (player1isFacingRight)
+        {
+            player1Sprite.setScale(playerScale, playerScale);
+            player1Sprite.setPosition(player1X - offsetX, player1Y);
+        }
+        else
+        {
+            player1Sprite.setScale(-playerScale, playerScale);
+            player1Sprite.setPosition(player1X + visualSize - offsetX, player1Y);
+        }
+
+        if (player2isFacingRight)
+        {
+            player2Sprite.setScale(playerScale, playerScale);
+            player2Sprite.setPosition(player2X - offsetX, player2Y);
+        }
+        else
+        {
+            player2Sprite.setScale(-playerScale, playerScale);
+            player2Sprite.setPosition(player2X + visualSize - offsetX, player2Y);
         }
     }
-}
 
-bool playerCollision(int x1, int x2, int y1, int y2, int h1, int h2, int w1, int w2)
-{
-    return (x1 < x2 + w2 &&
-            x1 + w1 > x2 &&
-            y1 < y2 + h2 &&
-            y1 + h1 > y2);
-}
-
-void movement(Sprite &player1Sprite, Sprite &player2Sprite)
-{
-    player1isIdle = true;
-    player2isIdle = true;
-    // player 1
-    if (Keyboard::isKeyPressed(Keyboard::A) && player1X > 0)
+    void playerGravity()
     {
-        player1isIdle = false;
-        player1isFacingRight = false;
-        float nextX = player1X - speed;
-        if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
-            player1X = nextX;
+        // apply gravity to velocity if player is not on ground
+        if (!player1isOnGround)
+        {
+            velocity1 += gravity;
+            if (velocity1 > terminalVelocity)
+                velocity1 = terminalVelocity;
+        }
+        else
+            velocity1 = 0;
+
+        if (!player2isOnGround)
+        {
+            velocity2 += gravity;
+            if (velocity2 > terminalVelocity)
+                velocity2 = terminalVelocity;
+        }
+        else
+            velocity2 = 0;
+
+        // calculating next Y position after jump
+        offsetY1 = player1Y;
+        offsetY1 += velocity1;
+
+        offsetY2 = player2Y;
+        offsetY2 += velocity2;
+
+        if (offsetY1 > ground)
+        {
+            player1isJumping = false;
+            player1isOnGround = true;
+            velocity1 = 0;
+            player1Y = ground;
+        }
+        else
+        {
+            player1Y = offsetY1;
+            player1isOnGround = false;
+        }
+
+        if (offsetY2 > ground)
+        {
+            player2isJumping = false;
+            player2isOnGround = true;
+            velocity2 = 0;
+            player2Y = ground;
+        }
+        else
+        {
+            player2Y = offsetY2;
+            player2isOnGround = false;
+        }
     }
 
-    if (Keyboard::isKeyPressed(Keyboard::D) && player1X + player1Width < screenX)
+    int main()
     {
-        player1isIdle = false;
-        player1isFacingRight = true;
-        float nextX = player1X + speed;
-        if (!playerCollision(nextX, player2X, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
+        // creating window
+        RenderWindow window(VideoMode(screenX, screenY), "Broken Stance", Style::Default);
+        window.setPosition(Vector2i(150, 50));
+        window.setFramerateLimit(60);
+        window.setVerticalSyncEnabled(true);
 
-            player1X = nextX;
-    }
+        // LOADING TEXTURES
 
-    if (Keyboard::isKeyPressed(Keyboard::W) && player1isOnGround)
-    {
-        player1isJumping = true;
-        player1isOnGround = false;
-        velocity1 = jumpstrength;
-    }
+        // background
+        Texture bgTexture;
+        bgTexture.loadFromFile("Assets/Sprites/bg.png");
 
-    // player 2
-    if (Keyboard::isKeyPressed(Keyboard::Left) && player2X > 0)
-    {
-        player2isIdle = false;
-        player2isFacingRight = false;
-        float nextX = player2X - speed;
-        if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
-            player2X = nextX;
-    }
+        // player
+        Texture p1IdleTex, p1JumpTex, p1RunTex, p1Attack1;
+        p1IdleTex.loadFromFile("Assets/Sprites/player1/idle.png");
+        p1JumpTex.loadFromFile("Assets/Sprites/player1/Jump.png");
+        p1RunTex.loadFromFile("Assets/Sprites/player1/Run.png");
+        p1Attack1.loadFromFile("Assets/Sprites/player1/Attack_1.png");
 
-    if (Keyboard::isKeyPressed(Keyboard::Right) && player2X + player2Width < screenX)
-    {
-        player2isIdle = false;
-        player2isFacingRight = true;
-        float nextX = player2X + speed;
-        if (!playerCollision(player1X, nextX, player1Y, player2Y, player1Height, player2Height, player1Width, player2Width))
-            player2X = nextX;
-    }
+        // player 2
+        Texture p2IdleTex, p2JumpTex, p2RunTex, p2Attack1;
+        p2IdleTex.loadFromFile("Assets/Sprites/player2/idle.png");
+        p2JumpTex.loadFromFile("Assets/Sprites/player2/Jump.png");
+        p2RunTex.loadFromFile("Assets/Sprites/player2/Run.png");
+        p2Attack1.loadFromFile("Assets/Sprites/player2/Attack_1.png");
 
-    if (Keyboard::isKeyPressed(Keyboard::Up) && player2isOnGround)
-    {
-        player2isJumping = true;
-        player2isOnGround = false;
-        velocity2 = jumpstrength;
-    }
+        // Creating Sprites
 
-    // updating position
+        // background
+        Sprite bgSprite;
+        bgSprite.setTexture(bgTexture);
 
-    int visualSize = textureSize * playerScale; // 128*3=384
-    // Calculating the "Empty Space" offsets
-    // X: (384 - 96) / 2 = 144 pixels of empty space on the left
-    int offsetX = (visualSize - player1Width) / 2;
-
-    if (player1isFacingRight)
-    {
+        // player 1
+        Sprite player1Sprite;
+        player1Sprite.setTexture(p1IdleTex);
+        player1Sprite.setTextureRect(IntRect(0, 0, textureSize, textureSize));
         player1Sprite.setScale(playerScale, playerScale);
-        player1Sprite.setPosition(player1X - offsetX, player1Y);
-    }
-    else
-    {
-        player1Sprite.setScale(-playerScale, playerScale);
-        player1Sprite.setPosition(player1X + visualSize - offsetX, player1Y);
-    }
 
-    if (player2isFacingRight)
-    {
-        player2Sprite.setScale(playerScale, playerScale);
-        player2Sprite.setPosition(player2X - offsetX, player2Y);
-    }
-    else
-    {
+        // player 2
+        Sprite player2Sprite;
+        player2Sprite.setTexture(p2IdleTex);
+        player2Sprite.setTextureRect(IntRect(0, 0, textureSize, textureSize));
         player2Sprite.setScale(-playerScale, playerScale);
-        player2Sprite.setPosition(player2X + visualSize - offsetX, player2Y);
-    }
-}
 
-void playerGravity()
-{
-    // apply gravity to velocity if player is not on ground
-    if (!player1isOnGround)
-    {
-        velocity1 += gravity;
-        if (velocity1 > terminalVelocity)
-            velocity1 = terminalVelocity;
-    }
-    else
-        velocity1 = 0;
+        // HEALTH BARS
 
-    if (!player2isOnGround)
-    {
-        velocity2 += gravity;
-        if (velocity2 > terminalVelocity)
-            velocity2 = terminalVelocity;
-    }
-    else
-        velocity2 = 0;
+        Font font;
+        font.loadFromFile("Assets/Fonts/arial.ttf");
 
-    // calculating next Y position after jump
-    offsetY1 = player1Y;
-    offsetY1 += velocity1;
+        // player1
+        Text player1Text;
+        player1Text.setFont(font);
+        player1Text.setString("PLAYER 1: 100%");
+        player1Text.setPosition(50, 10);
+        player1Text.setStyle(Text::Bold);
+        player1Text.setOutlineColor(Color::Black);
+        player1Text.setOutlineThickness(1);
 
-    offsetY2 = player2Y;
-    offsetY2 += velocity2;
+        // background bar static
+        RectangleShape bgHealthBar1;
+        bgHealthBar1.setSize({300.f, 50.f});
+        bgHealthBar1.setPosition({50.0f, 50.f});
+        bgHealthBar1.setFillColor(Color::Black);
 
-    if (offsetY1 > ground)
-    {
-        player1isJumping = false;
-        player1isOnGround = true;
-        velocity1 = 0;
-        player1Y = ground;
-    }
-    else
-    {
-        player1Y = offsetY1;
-        player1isOnGround = false;
-    }
+        // player1 health bar
+        RectangleShape player1HealthBar;
+        player1HealthBar.setSize({300.f, 50.f});
+        player1HealthBar.setPosition({50.0f, 50.0f});
+        player1HealthBar.setFillColor(Color::Blue);
 
-    if (offsetY2 > ground)
-    {
-        player2isJumping = false;
-        player2isOnGround = true;
-        velocity2 = 0;
-        player2Y = ground;
-    }
-    else
-    {
-        player2Y = offsetY2;
-        player2isOnGround = false;
-    }
-}
+        // player2
+        Text player2Text;
+        player2Text.setFont(font);
+        player2Text.setString("PLAYER 2: 100%");
+        player2Text.setPosition(950, 10);
+        player2Text.setStyle(Text::Bold);
+        player2Text.setOutlineColor(Color::Black);
+        player2Text.setOutlineThickness(1);
 
-int main()
-{
-    // creating window
-    RenderWindow window(VideoMode(screenX, screenY), "Broken Stance", Style::Default);
-    window.setPosition(Vector2i(150, 50));
-    window.setFramerateLimit(60);
-    window.setVerticalSyncEnabled(true);
+        // background bar static
+        RectangleShape bgHealthBar2;
+        bgHealthBar2.setSize({300.f, 50.f});
+        bgHealthBar2.setPosition({950.0f, 50.0f});
+        bgHealthBar2.setFillColor(Color::Black);
 
-    // LOADING TEXTURES
+        // player2 health bar
+        RectangleShape player2HealthBar;
+        player2HealthBar.setSize({300.f, 50.f});
+        player2HealthBar.setPosition({950.0f, 50.0f});
+        player2HealthBar.setFillColor(Color::Red);
 
-    // background
-    Texture bgTexture;
-    bgTexture.loadFromFile("Assets/Sprites/bg.png");
+        // GAME OVER TEXT
+        Text GameOverText;
+        GameOverText.setFont(font);
+        GameOverText.setString("PLAYER 1 WINS!");
+        GameOverText.setCharacterSize(100);
+        GameOverText.setFillColor(Color::Blue);
+        GameOverText.setPosition(screenX / 2 - 300, screenY / 2 - 50);
 
-    // player
-    Texture p1IdleTex, p1JumpTex, p1RunTex, p1Attack1;
-    p1IdleTex.loadFromFile("Assets/Sprites/player1/idle.png");
-    p1JumpTex.loadFromFile("Assets/Sprites/player1/Jump.png");
-    p1RunTex.loadFromFile("Assets/Sprites/player1/Run.png");
-    p1Attack1.loadFromFile("Assets/Sprites/player1/Attack_1.png");
-
-    // player 2
-    Texture p2IdleTex, p2JumpTex, p2RunTex, p2Attack1;
-    p2IdleTex.loadFromFile("Assets/Sprites/player2/idle.png");
-    p2JumpTex.loadFromFile("Assets/Sprites/player2/Jump.png");
-    p2RunTex.loadFromFile("Assets/Sprites/player2/Run.png");
-    p2Attack1.loadFromFile("Assets/Sprites/player2/Attack_1.png");
-
-    // Creating Sprites
-
-    // background
-    Sprite bgSprite;
-    bgSprite.setTexture(bgTexture);
-
-    // player 1
-    Sprite player1Sprite;
-    player1Sprite.setTexture(p1IdleTex);
-    player1Sprite.setTextureRect(IntRect(0, 0, textureSize, textureSize));
-    player1Sprite.setScale(playerScale, playerScale);
-
-    // player 2
-    Sprite player2Sprite;
-    player2Sprite.setTexture(p2IdleTex);
-    player2Sprite.setTextureRect(IntRect(0, 0, textureSize, textureSize));
-    player2Sprite.setScale(-playerScale, playerScale);
-
-    // main game loop
-    Event Ev;
-    while (window.isOpen())
-    {
-        window.clear();
-
-        while (window.pollEvent(Ev))
+        // main game loop
+        Event Ev;
+        while (window.isOpen())
         {
-            if (Ev.type == Event::Closed) // when the close window icon is pressed it closes window
+            window.clear();
+
+            while (window.pollEvent(Ev))
+            {
+                if (Ev.type == Event::Closed) // when the close window icon is pressed it closes window
+                    window.close();
+            }
+
+            if (Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
+
+            if (isGameOver)
+            {
+                // Determine winner
+                if (player1Health <= 0)
+                {
+                    GameOverText.setString("PLAYER 2 WINS!");
+                    GameOverText.setFillColor(Color::Red);
+                }
+                else
+                {
+                    GameOverText.setString("PLAYER 1 WINS!");
+                    GameOverText.setFillColor(Color::Blue);
+                }
+                window.draw(GameOverText);
+                window.display();
+            }
+            else
+            {
+
+                // function calls
+                attack(player1HealthBar, player2HealthBar, player1Text, player2Text);
+                movement(player1Sprite, player2Sprite);
+                playerGravity();
+                animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p1Attack1, p2IdleTex, p2JumpTex, p2RunTex, p2Attack1);
+
+                // drawing on screen
+                window.draw(bgSprite);
+                window.draw(bgHealthBar1);
+                window.draw(bgHealthBar2);
+                window.draw(player1HealthBar);
+                window.draw(player2HealthBar);
+                window.draw(player1Text);
+                window.draw(player2Text);
+                window.draw(player1Sprite);
+                window.draw(player2Sprite);
+                window.display();
+            }
         }
-
-        if (Keyboard::isKeyPressed(Keyboard::Escape))
-            window.close();
-
-        // function calling
-        attack();
-        movement(player1Sprite, player2Sprite);
-        playerGravity();
-        animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p1Attack1, p2IdleTex, p2JumpTex, p2RunTex, p2Attack1);
-
-        // drawing on screen
-        window.draw(bgSprite);
-        window.draw(player1Sprite);
-        window.draw(player2Sprite);
-        window.display();
     }
-}
