@@ -57,6 +57,38 @@ int p1Counter = 0;
 int p2Frame = 0;
 int p2Counter = 0;
 
+// game state variables
+int gameState = 0;       // 0 - menu, 1 - instructions, 2 - game ,3 - game over
+int selectedOption = 0;  // 0=Local, 1=Online, 2=AI, 3=Exit
+string menuMessage = ""; // string for coming soon messages
+
+void resetGame(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, Text &player1Text, Text &player2Text)
+{
+    player1Health = 100;
+    player2Health = 100;
+    player1X = 50;
+    player1Y = ground;
+    player2X = 1000;
+    player2Y = ground;
+    isGameOver = false;
+    player1isHurt = false;
+    player2isHurt = false;
+    player1isAttacking = false;
+    player2isAttacking = false;
+
+    // reset animation
+    p1Frame = 0;
+    p1Counter = 0;
+    p2Frame = 0;
+    p2Counter = 0;
+
+    // reset health bars and text
+    player1HealthBar.setSize({300.f, 50.f});
+    player2HealthBar.setSize({300.f, 50.f});
+    player1Text.setString("PLAYER 1: 100%");
+    player2Text.setString("PLAYER 2: 100%");
+}
+
 void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, Text &player1Text, Text &player2Text)
 {
 
@@ -74,9 +106,9 @@ void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, 
         {
             if (player2Health > 0)
             {
+
                 player2isHurt = true;
                 player2isAttacking = false;
-
                 p2Frame = 0;
                 p2Counter = 0;
 
@@ -108,9 +140,9 @@ void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, 
 
             if (player1Health > 0)
             {
+
                 player1isHurt = true;
                 player1isAttacking = false;
-
                 p1Frame = 0;
                 p1Counter = 0;
 
@@ -458,9 +490,9 @@ int main()
 {
     // creating window
     RenderWindow window(VideoMode(screenX, screenY), "Broken Stance", Style::Default);
-    window.setPosition(Vector2i(150, 50));
     window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
+    window.requestFocus(); // Request focus so keyboard input works immediately
 
     // LOADING TEXTURES
 
@@ -557,6 +589,55 @@ int main()
     GameOverText.setFillColor(Color::Blue);
     GameOverText.setPosition(screenX / 2 - 300, screenY / 2 - 50);
 
+    // buttons
+    Text Title;
+    Title.setFont(font);
+    Title.setString("BROKEN STANCE");
+    Title.setCharacterSize(100);
+    Title.setFillColor(Color::White);
+    Title.setPosition(screenX / 2 - 300, 50);
+
+    Text button1;
+    button1.setFont(font);
+    button1.setString("LOCAL PvP");
+    button1.setCharacterSize(50);
+    button1.setFillColor(Color::White);
+    button1.setPosition(screenX / 2 - 100, 200);
+
+    Text button2;
+    button2.setFont(font);
+    button2.setString("ONLINE PvP");
+    button2.setCharacterSize(50);
+    button2.setFillColor(Color::White);
+    button2.setPosition(screenX / 2 - 100, 300);
+
+    Text button3;
+    button3.setFont(font);
+    button3.setString("vs AI");
+    button3.setCharacterSize(50);
+    button3.setFillColor(Color::White);
+    button3.setPosition(screenX / 2 - 100, 400);
+
+    Text button4;
+    button4.setFont(font);
+    button4.setString("EXIT");
+    button4.setCharacterSize(50);
+    button4.setFillColor(Color::White);
+    button4.setPosition(screenX / 2 - 100, 500);
+
+    Text messageText;
+    messageText.setFont(font);
+    messageText.setCharacterSize(30);
+    messageText.setFillColor(Color::Yellow);
+    messageText.setPosition(screenX / 2 - 150, 600);
+
+    Text instructionsText;
+    instructionsText.setFont(font);
+    instructionsText.setCharacterSize(30);
+    instructionsText.setFillColor(Color::White);
+    instructionsText.setPosition(50, 100);
+    instructionsText.setString("PLAYER 1 CONTROLS:\nA - Move Left\nD - Move Right\nW - Jump\nQ - Attack\n\nPLAYER 2 CONTROLS:\nLeft Arrow - Move Left\nRight Arrow - Move Right\nUp Arrow - Jump\nK - Attack\n\nPress ESC to return to Menu");
+
     // main game loop
     Event Ev;
     while (window.isOpen())
@@ -567,12 +648,146 @@ int main()
         {
             if (Ev.type == Event::Closed) // when the close window icon is pressed it closes window
                 window.close();
+
+            if (gameState == 0) // menu state
+            {
+                if (Ev.type == Event::KeyPressed)
+                {
+                    if (Ev.key.code == Keyboard::Escape)
+                    {
+                        window.close();
+                    }
+                    if (Ev.key.code == Keyboard::Up)
+                    {
+                        selectedOption--;
+                        if (selectedOption < 0)
+                            selectedOption = 3; // loop to last option
+                    }
+                    if (Ev.key.code == Keyboard::Down)
+                    {
+                        selectedOption++;
+                        if (selectedOption > 3)
+                            selectedOption = 0; // loop to first option
+                    }
+                    if (Ev.key.code == Keyboard::Enter)
+                    {
+                        if (selectedOption == 0) // Local PvP
+                        {
+                            gameState = 1; // open instructions and move to game state after that
+                            resetGame(player1HealthBar, player2HealthBar, player1Text, player2Text);
+                        }
+                        else if (selectedOption == 1) // Online PvP
+                            menuMessage = "ONLINE PvP COMING SOON!";
+                        else if (selectedOption == 2) // vs AI
+                            menuMessage = "AI MODE COMING SOON!";
+                        else if (selectedOption == 3) // Exit
+                            window.close();
+                    }
+                }
+            }
+            else if (gameState == 1)
+            {
+                if (Ev.type == Event::KeyPressed)
+                {
+                    if (Ev.key.code == Keyboard::Enter)
+                    {
+                        resetGame(player1HealthBar, player2HealthBar, player1Text, player2Text);   // Reset everything
+                        gameState = 2; // START GAME!
+                    }
+                    if (Ev.key.code == Keyboard::Escape)
+                    {
+                        gameState = 0; // Return to menu
+                        menuMessage = "";
+                    }
+                }
+            }
+            else if (gameState == 2) // game state
+            {
+                if (Ev.type == Event::KeyPressed && Ev.key.code == Keyboard::Escape)
+                {
+                    gameState = 0; // Return to menu
+                    menuMessage = "";
+                }
+            }
+            else if (gameState == 3) //game over state
+            {
+                if (Ev.type == Event::KeyPressed)
+                {
+                    if (Ev.key.code == Keyboard::R)
+                    {
+                        resetGame(player1HealthBar, player2HealthBar, player1Text, player2Text);
+                        gameState = 2; // Restart
+                    }
+                    if (Ev.key.code == Keyboard::Escape)
+                    {
+                        gameState = 0; // Go to Menu
+                        menuMessage = "";
+                    }
+                }
+            }
+        } // end of poll event loop
+
+        window.clear();
+        window.draw(bgSprite);
+
+        if (gameState == 0) // menu
+        {
+            if (selectedOption == 0)
+                button1.setFillColor(Color::Red);
+            else
+                button1.setFillColor(Color::White);
+            if (selectedOption == 1)
+                button2.setFillColor(Color::Red);
+            else
+                button2.setFillColor(Color::White);
+            if (selectedOption == 2)
+                button3.setFillColor(Color::Red);
+            else
+                button3.setFillColor(Color::White);
+            if (selectedOption == 3)
+                button4.setFillColor(Color::Red);
+            else
+                button4.setFillColor(Color::White);
+
+            messageText.setString(menuMessage);
+            window.draw(Title);
+            window.draw(button1);
+            window.draw(button2);
+            window.draw(button3);
+            window.draw(button4);
+            window.draw(messageText);
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::Escape))
-            window.close();
+        else if (gameState == 1) // instructions
+        {
+            window.draw(Title);
+            window.draw(instructionsText);
+        }
 
-        if (isGameOver)
+        else if (gameState == 2) // main game
+        {
+            if (isGameOver)
+                gameState = 3; // go to game over state
+            else
+            {
+                attack(player1HealthBar, player2HealthBar, player1Text, player2Text);
+                movement(player1Sprite, player2Sprite);
+                playerGravity();
+                animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p1Attack1, p1HurtTex, p2IdleTex, p2JumpTex, p2RunTex, p2Attack1, p2HurtTex);
+
+                window.draw(player1Sprite);
+                window.draw(player2Sprite);
+
+                window.draw(bgHealthBar1);
+                window.draw(bgHealthBar2);
+                window.draw(player1HealthBar);
+                window.draw(player2HealthBar);
+                window.draw(player1Text);
+                window.draw(player2Text);
+            }
+        }
+
+        else if (gameState == 3) // game over
         {
             // Determine winner
             if (player1Health <= 0)
@@ -585,29 +800,16 @@ int main()
                 GameOverText.setString("PLAYER 1 WINS!");
                 GameOverText.setFillColor(Color::Blue);
             }
+            Text restartText;
+            restartText.setFont(font);
+            restartText.setString("Press R to Restart or ESC to return to Menu");
+            restartText.setCharacterSize(40);
+            restartText.setFillColor(Color::White);
+            restartText.setPosition(screenX / 2 - 300, screenY / 2 + 100);
+
             window.draw(GameOverText);
-            window.display();
+            window.draw(restartText);
         }
-        else
-        {
-
-            // function calls
-            attack(player1HealthBar, player2HealthBar, player1Text, player2Text);
-            movement(player1Sprite, player2Sprite);
-            playerGravity();
-            animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p1Attack1, p1HurtTex, p2IdleTex, p2JumpTex, p2RunTex, p2Attack1, p2HurtTex);
-
-            // drawing on screen
-            window.draw(bgSprite);
-            window.draw(bgHealthBar1);
-            window.draw(bgHealthBar2);
-            window.draw(player1HealthBar);
-            window.draw(player2HealthBar);
-            window.draw(player1Text);
-            window.draw(player2Text);
-            window.draw(player1Sprite);
-            window.draw(player2Sprite);
-            window.display();
-        }
+        window.display();
     }
 }
