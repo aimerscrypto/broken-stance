@@ -62,6 +62,86 @@ int gameState = 0;       // 0 - menu, 1 - instructions, 2 - game ,3 - game over
 int selectedOption = 0;  // 0=Local, 1=Online, 2=AI, 3=Exit
 string menuMessage = ""; // string for coming soon messages
 
+// Draws a button that glows Red when selected
+void drawButton(RenderWindow &window, Font &font, string text, int yPosition, bool isSelected)
+{
+    int width = 400;
+    int height = 60;
+    // Calculate X to center the button
+    int xPosition = (screenX - width) / 2;
+
+    RectangleShape buttonBox({(float)width, (float)height});
+    buttonBox.setPosition(xPosition, yPosition);
+
+    if (isSelected)
+    {
+        buttonBox.setFillColor(Color(200, 0, 0, 200)); // Red tint
+        buttonBox.setOutlineThickness(4);
+        buttonBox.setOutlineColor(Color::White);
+    }
+    else
+    {
+        buttonBox.setFillColor(Color(0, 0, 0, 150)); // Dark tint
+        buttonBox.setOutlineThickness(2);
+        buttonBox.setOutlineColor(Color(100, 100, 100));
+    }
+
+    Text buttonText;
+    buttonText.setFont(font);
+    buttonText.setString(text);
+    buttonText.setCharacterSize(30);
+    buttonText.setFillColor(Color::White);
+
+    // Center text exactly inside the box using local bounds
+    FloatRect textRect = buttonText.getLocalBounds();
+    buttonText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+    buttonText.setPosition(xPosition + width / 2.0f, yPosition + height / 2.0f);
+
+    window.draw(buttonBox);
+    window.draw(buttonText);
+}
+// Draws the Title with a Shadow effect
+void drawTitle(RenderWindow &window, Font &font, string text)
+{
+    // Shadow (Black, slightly offset)
+    Text titleShadow;
+    titleShadow.setFont(font);
+    titleShadow.setString(text);
+    titleShadow.setCharacterSize(80);
+    titleShadow.setFillColor(Color::Black);
+    titleShadow.setStyle(Text::Bold);
+
+    FloatRect shadowRect = titleShadow.getLocalBounds();
+    titleShadow.setOrigin(shadowRect.left + shadowRect.width / 2.0f, shadowRect.top + shadowRect.height / 2.0f);
+    titleShadow.setPosition(screenX / 2 + 4, 84); // Offset by 4 pixels
+
+    // Main Text (White)
+    Text titleMain;
+    titleMain.setFont(font);
+    titleMain.setString(text);
+    titleMain.setCharacterSize(80);
+    titleMain.setFillColor(Color::White);
+    titleMain.setStyle(Text::Bold);
+
+    FloatRect mainRect = titleMain.getLocalBounds();
+    titleMain.setOrigin(mainRect.left + mainRect.width / 2.0f, mainRect.top + mainRect.height / 2.0f);
+    titleMain.setPosition(screenX / 2, 80);
+
+    window.draw(titleShadow);
+    window.draw(titleMain);
+}
+
+// Draws a dark semi-transparent panel behind text
+void drawPanel(RenderWindow &window, int x, int y, int w, int h)
+{
+    RectangleShape panel({(float)w, (float)h});
+    panel.setPosition(x, y);
+    panel.setFillColor(Color(0, 0, 0, 220)); // High opacity black
+    panel.setOutlineColor(Color::White);
+    panel.setOutlineThickness(2);
+    window.draw(panel);
+}
+
 void resetGame(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, Text &player1Text, Text &player2Text)
 {
     player1Health = 100;
@@ -589,42 +669,6 @@ int main()
     GameOverText.setFillColor(Color::Blue);
     GameOverText.setPosition(screenX / 2 - 300, screenY / 2 - 50);
 
-    // buttons
-    Text Title;
-    Title.setFont(font);
-    Title.setString("BROKEN STANCE");
-    Title.setCharacterSize(100);
-    Title.setFillColor(Color::White);
-    Title.setPosition(screenX / 2 - 300, 50);
-
-    Text button1;
-    button1.setFont(font);
-    button1.setString("LOCAL PvP");
-    button1.setCharacterSize(50);
-    button1.setFillColor(Color::White);
-    button1.setPosition(screenX / 2 - 100, 200);
-
-    Text button2;
-    button2.setFont(font);
-    button2.setString("ONLINE PvP");
-    button2.setCharacterSize(50);
-    button2.setFillColor(Color::White);
-    button2.setPosition(screenX / 2 - 100, 300);
-
-    Text button3;
-    button3.setFont(font);
-    button3.setString("vs AI");
-    button3.setCharacterSize(50);
-    button3.setFillColor(Color::White);
-    button3.setPosition(screenX / 2 - 100, 400);
-
-    Text button4;
-    button4.setFont(font);
-    button4.setString("EXIT");
-    button4.setCharacterSize(50);
-    button4.setFillColor(Color::White);
-    button4.setPosition(screenX / 2 - 100, 500);
-
     Text messageText;
     messageText.setFont(font);
     messageText.setCharacterSize(30);
@@ -691,8 +735,8 @@ int main()
                 {
                     if (Ev.key.code == Keyboard::Enter)
                     {
-                        resetGame(player1HealthBar, player2HealthBar, player1Text, player2Text);   // Reset everything
-                        gameState = 2; // START GAME!
+                        resetGame(player1HealthBar, player2HealthBar, player1Text, player2Text); // Reset everything
+                        gameState = 2;                                                           // START GAME!
                     }
                     if (Ev.key.code == Keyboard::Escape)
                     {
@@ -709,7 +753,7 @@ int main()
                     menuMessage = "";
                 }
             }
-            else if (gameState == 3) //game over state
+            else if (gameState == 3) // game over state
             {
                 if (Ev.type == Event::KeyPressed)
                 {
@@ -732,35 +776,29 @@ int main()
 
         if (gameState == 0) // menu
         {
-            if (selectedOption == 0)
-                button1.setFillColor(Color::Red);
-            else
-                button1.setFillColor(Color::White);
-            if (selectedOption == 1)
-                button2.setFillColor(Color::Red);
-            else
-                button2.setFillColor(Color::White);
-            if (selectedOption == 2)
-                button3.setFillColor(Color::Red);
-            else
-                button3.setFillColor(Color::White);
-            if (selectedOption == 3)
-                button4.setFillColor(Color::Red);
-            else
-                button4.setFillColor(Color::White);
+            drawTitle(window, font, "BROKEN STANCE");
+
+            // Draw buttons and tell them which one is selected
+            // The last argument (true/false) tells the function to glow red or not
+            drawButton(window, font, "LOCAL PvP", 250, selectedOption == 0);
+            drawButton(window, font, "ONLINE PvP", 320, selectedOption == 1);
+            drawButton(window, font, "PLAY AGAINST AI", 390, selectedOption == 2);
+            drawButton(window, font, "EXIT", 460, selectedOption == 3);
 
             messageText.setString(menuMessage);
-            window.draw(Title);
-            window.draw(button1);
-            window.draw(button2);
-            window.draw(button3);
-            window.draw(button4);
+
+            // Center and draw Coming Soon message
+            FloatRect msgRect = messageText.getLocalBounds();
+            messageText.setOrigin(msgRect.left + msgRect.width / 2.0f, msgRect.top + msgRect.height / 2.0f);
+            messageText.setPosition(screenX / 2, 600);
             window.draw(messageText);
         }
 
         else if (gameState == 1) // instructions
         {
-            window.draw(Title);
+            drawTitle(window, font, "HOW TO PLAY");
+            // Draw a dark box behind the text
+            drawPanel(window, 50, 140, 1180, 500);
             window.draw(instructionsText);
         }
 
@@ -789,7 +827,10 @@ int main()
 
         else if (gameState == 3) // game over
         {
-            // Determine winner
+            // Draw a box in the center
+            drawPanel(window, 200, 200, 880, 320);
+
+            // set winner text color
             if (player1Health <= 0)
             {
                 GameOverText.setString("PLAYER 2 WINS!");
@@ -800,12 +841,22 @@ int main()
                 GameOverText.setString("PLAYER 1 WINS!");
                 GameOverText.setFillColor(Color::Blue);
             }
+
+            // Center Winner Text
+            FloatRect textRect = GameOverText.getLocalBounds();
+            GameOverText.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+            GameOverText.setPosition(screenX / 2.0f, screenY / 2.0f - 50);
+
+            // Center Restart Text
             Text restartText;
             restartText.setFont(font);
             restartText.setString("Press R to Restart or ESC to return to Menu");
-            restartText.setCharacterSize(40);
+            restartText.setCharacterSize(30);
             restartText.setFillColor(Color::White);
-            restartText.setPosition(screenX / 2 - 300, screenY / 2 + 100);
+
+            FloatRect rRect = restartText.getLocalBounds();
+            restartText.setOrigin(rRect.left + rRect.width / 2.0f, rRect.top + rRect.height / 2.0f);
+            restartText.setPosition(screenX / 2, screenY / 2 + 50);
 
             window.draw(GameOverText);
             window.draw(restartText);
