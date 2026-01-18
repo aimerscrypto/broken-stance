@@ -1,73 +1,45 @@
-# Broken Stance
+# ⚔️ Broken Stance
 
-A 2D fighting game built in C++ using SFML (Simple and Fast Multimedia Library)
+> A raw, arcade-style 1v1 fighting game engine built from scratch in C++.
 
-## Features
-- **Local PvP**: Two-player combat on the same machine
-- **Smooth Animations**: Character animations for idle, running, jumping, attacking, and hurt states
-- **Health System**: Real-time health bars and damage tracking
-- **Collision Detection**: Player-to-player collision and attack hitboxes
-- **Physics**: Gravity and jump mechanics
-- **Menu System**: Main menu with instructions screen
+![Gameplay Screenshot](screenshots/gameplay_demo.png)
 
-## Controls
+## 📖 About The Project
+I built **Broken Stance** to dive deep into the fundamentals of game engine architecture. Instead of using a pre-made engine like Unity or Unreal, I wanted to understand **how** games work under the hood. 
 
-### Player 1
-- **A/D**: Move Left/Right
-- **W**: Jump
-- **Q**: Attack
+This project explores **State Machines**, **Memory Management**, **AABB Collision Detection**, and **Frame-Perfect Animation Handling** using C++ and SFML. It’s a love letter to classic arcade fighters, featuring smooth combat, audio feedback, and a complete game loop.
 
-### Player 2
-- **Arrow Keys**: Move Left/Right
-- **Up Arrow**: Jump
-- **K**: Attack
+## 🎮 Features
+* **Custom Physics Engine**: Hand-written gravity, velocity, and friction logic.
+* **State Machine Architecture**: A robust system managing Menu, Instructions, Gameplay, and Game Over states.
+* **Local PvP**: 1v1 combat on a shared keyboard (Arcade style).
+* **Audio System**: Integrated sound effects for attacks, hits, and menu navigation using `SFML/Audio`.
+* **Responsive UI**: A fully navigable menu system with input locking to prevent scrolling bugs.
+* **Hitboxes & Hurtboxes**: Precise collision detection for combat interaction.
 
-### General
-- **ESC**: Return to Menu (or Exit from Menu)
-- **R**: Restart Match (Game Over screen)
+## 🕹️ Controls
 
-## Requirements
-- C++ Compiler (g++ recommended)
-- SFML 2.5+ (Graphics, Window, System modules)
-- Windows/Linux/MacOS
+| Action | Player 1 (Boy) | Player 2 (Girl) |
+| :--- | :---: | :---: |
+| **Move** | `W` `A` `S` `D` | `Arrow Keys` |
+| **Attack** | `Q` | `K` |
+| **Jump** | `W` | `Up Arrow` |
 
-## Building & Running
+* **Menu Navigation**: `Up` / `Down` arrows + `Enter`
+* **Restart Match**: `R` (On Game Over screen)
+* **Quit to Menu**: `ESC`
 
-### Windows (MinGW)
+## 🛠️ Built With
+* **Language**: C++
+* **Library**: [SFML](https://www.sfml-dev.org/) (Simple and Fast Multimedia Library)
+* **Audio & Graphics**: Custom asset integration
+
+## 🚀 Getting Started
+
+### Prerequisites
+* A C++ compiler (GCC/MinGW recommended).
+* SFML 2.5.1+ installed.
+
+### Build & Run (Windows MinGW)
 ```bash
-g++ game.cpp -o game.exe -IC:/SFML/include -LC:/SFML/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
-```
-
-**Note:** Adjust the SFML include and lib paths according to your SFML installation location.
-
-### Linux
-```bash
-g++ game.cpp -o game -lsfml-graphics -lsfml-window -lsfml-system
-```
-
-## Project Structure
-```
-broken-stance/
-├── game.cpp           # Main game source code
-├── README.md          # Project documentation
-└── Assets/
-    ├── Fonts/         # Game fonts
-    └── Sprites/       # Character sprites and backgrounds
-        ├── player1/   # Player 1 animations
-        └── player2/   # Player 2 animations
-```
-
-## Future Plans
-- Online multiplayer
-- AI opponents
-- More characters
-- Special moves and combos
-- Sound effects and music
-
-## Technologies Used
-- **C++**: Core game logic
-- **SFML**: Graphics, window management, and input handling
-
----
-
-Made with ❤️ for learning game development
+g++ game.cpp -o game.exe -I"C:/SFML/include" -L"C:/SFML/lib" -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio

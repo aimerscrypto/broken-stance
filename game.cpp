@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 using namespace std;
 using namespace sf;
 
@@ -169,9 +170,10 @@ void resetGame(RectangleShape &player1HealthBar, RectangleShape &player2HealthBa
     player2Text.setString("PLAYER 2: 100%");
 }
 
-void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, Text &player1Text, Text &player2Text)
+void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, Text &player1Text, Text &player2Text,
+            Sound &sP1Atk, Sound &sP1Hit, Sound &sP1Effort,
+            Sound &sP2Atk, Sound &sP2Hit, Sound &sP2Effort)
 {
-
     // distance between player
     float distance = (player2X - (player1X + player1Width));
 
@@ -182,6 +184,10 @@ void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, 
         p1Frame = 0;
         p1Counter = 0;
 
+        // Play Sounds
+        sP1Atk.play();    // Swoosh
+        sP1Effort.play(); // Grunt
+
         if (distance < 60)
         {
             if (player2Health > 0)
@@ -191,6 +197,8 @@ void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, 
                 player2isAttacking = false;
                 p2Frame = 0;
                 p2Counter = 0;
+
+                sP1Hit.play(); // Impact Sound
 
                 player2Health -= 10;
                 player2HealthBar.setSize({player2Health * 3.f, 50.f});
@@ -215,6 +223,10 @@ void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, 
         p2Frame = 0;
         p2Counter = 0;
 
+        // Play Sounds
+        sP2Atk.play();    // sword Splash
+        sP2Effort.play(); // // High pitch Grunt
+
         if (distance < 60)
         {
 
@@ -225,6 +237,8 @@ void attack(RectangleShape &player1HealthBar, RectangleShape &player2HealthBar, 
                 player1isAttacking = false;
                 p1Frame = 0;
                 p1Counter = 0;
+
+                sP2Hit.play(); // Impact Sound
 
                 player1Health -= 10;
                 player1HealthBar.setSize({player1Health * 3.f, 50.f});
@@ -574,6 +588,36 @@ int main()
     window.setVerticalSyncEnabled(true);
     window.requestFocus(); // Request focus so keyboard input works immediately
 
+    // loading audios
+    Music bgMusic;
+    SoundBuffer bMenu, bEffort, bP1Atk, bP1Hit, bP2Atk, bP2Hit;
+    Sound sMenu, sP1Effort, sP2Effort, sP1Atk, sP1Hit, sP2Atk, sP2Hit;
+
+    bgMusic.openFromFile("Assets/Audio/battle_theme.ogg");
+    bgMusic.setLoop(true);
+    bgMusic.setVolume(20); // Set volume to 20%
+    bgMusic.play();
+
+    bMenu.loadFromFile("Assets/Audio/menu_move.ogg");
+    bEffort.loadFromFile("Assets/Audio/effort.ogg");
+    bP1Atk.loadFromFile("Assets/Audio/p1_attack.ogg");
+    bP1Hit.loadFromFile("Assets/Audio/p1_hit.ogg");
+    bP2Atk.loadFromFile("Assets/Audio/p2_attack.ogg");
+    bP2Hit.loadFromFile("Assets/Audio/p2_hit.ogg");
+
+    // Assign Buffers to Sounds
+    sMenu.setBuffer(bMenu);
+    sP1Atk.setBuffer(bP1Atk);
+    sP1Hit.setBuffer(bP1Hit);
+    sP2Atk.setBuffer(bP2Atk);
+    sP2Hit.setBuffer(bP2Hit);
+    sP1Effort.setBuffer(bEffort);
+
+    // Effort Sound Setup (Pitch Shifting for Girl)
+    sP1Effort.setBuffer(bEffort); // Boy uses normal pitch
+    sP2Effort.setBuffer(bEffort);
+    sP2Effort.setPitch(1.3f); // Girl uses higher pitch (1.3x)
+
     // LOADING TEXTURES
 
     // background
@@ -679,8 +723,8 @@ int main()
     instructionsText.setFont(font);
     instructionsText.setCharacterSize(30);
     instructionsText.setFillColor(Color::White);
-    instructionsText.setPosition(50, 100);
-    instructionsText.setString("PLAYER 1 CONTROLS:\nA - Move Left\nD - Move Right\nW - Jump\nQ - Attack\n\nPLAYER 2 CONTROLS:\nLeft Arrow - Move Left\nRight Arrow - Move Right\nUp Arrow - Jump\nK - Attack\n\nPress ESC to return to Menu");
+    instructionsText.setPosition(50,120);
+    instructionsText.setString("PLAYER 1 CONTROLS:\nA - Move Left\nD - Move Right\nW - Jump\nQ - Attack\n\nPLAYER 2 CONTROLS:\nLeft Arrow - Move Left\nRight Arrow - Move Right\nUp Arrow - Jump\nK - Attack\n\nPress ENTER to start game\n\nPress ESC to return to Menu");
 
     // main game loop
     Event Ev;
@@ -704,17 +748,23 @@ int main()
                     if (Ev.key.code == Keyboard::Up)
                     {
                         selectedOption--;
+                        sMenu.play(); // play menu select sound
+
                         if (selectedOption < 0)
                             selectedOption = 3; // loop to last option
                     }
                     if (Ev.key.code == Keyboard::Down)
                     {
                         selectedOption++;
+                        sMenu.play(); // play menu select sound
+
                         if (selectedOption > 3)
                             selectedOption = 0; // loop to first option
                     }
                     if (Ev.key.code == Keyboard::Enter)
                     {
+                        sMenu.play(); // play menu select sound
+
                         if (selectedOption == 0) // Local PvP
                         {
                             gameState = 1; // open instructions and move to game state after that
@@ -798,7 +848,7 @@ int main()
         {
             drawTitle(window, font, "HOW TO PLAY");
             // Draw a dark box behind the text
-            drawPanel(window, 50, 140, 1180, 500);
+            drawPanel(window, 50, 120, 1180, 530);
             window.draw(instructionsText);
         }
 
@@ -808,7 +858,10 @@ int main()
                 gameState = 3; // go to game over state
             else
             {
-                attack(player1HealthBar, player2HealthBar, player1Text, player2Text);
+                attack(player1HealthBar, player2HealthBar, player1Text, player2Text,
+                       sP1Atk, sP1Hit, sP1Effort,
+                       sP2Atk, sP2Hit, sP2Effort);
+
                 movement(player1Sprite, player2Sprite);
                 playerGravity();
                 animation(player1Sprite, player2Sprite, p1IdleTex, p1JumpTex, p1RunTex, p1Attack1, p1HurtTex, p2IdleTex, p2JumpTex, p2RunTex, p2Attack1, p2HurtTex);
